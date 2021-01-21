@@ -1024,12 +1024,51 @@
                     if (!hasTime() && !options.keepOpen && !options.inline) {
                         hide();
                     }
+
+                    if (!isValid(day, 'h') || !isValid(day, 'm')) {
+                        let currentDate = date.clone();
+                        let nearestBound;
+                        $.each(options.disabledTimeIntervals, function () {
+                            const diff1 = Math.abs(currentDate.diff(this[0]));
+                            const diff2 = Math.abs(currentDate.diff(this[1]));
+                            if (!nearestBound) {
+                                nearestBound = diff1 < diff2 ? this[0] : this[1];
+                            } else {
+                                const diff0 = Math.abs(currentDate.diff(nearestBound));
+                                if (Math.min(diff0, diff1, diff2) === diff1) {
+                                    nearestBound = this[0];
+                                } else if (Math.min(diff0, diff2) === diff2) {
+                                    nearestBound = this[1];
+                                }
+                            }
+                        });
+
+                        if (nearestBound) {
+                            setValue(nearestBound);
+                        } else {
+                            console.error('No valid hour found');
+                        }
+                    }
                 },
 
                 incrementHours: function () {
                     var newDate = date.clone().add(1, 'h');
                     if (isValid(newDate, 'h')) {
                         setValue(newDate);
+                    } else {
+                        let found = false;
+                        for (let h = 1; h <= 23; h++) {
+                            newDate = date.clone().add(h, 'h');
+                            if (isValid(newDate, 'h')) {
+                                setValue(newDate);
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found) {
+                            console.error('No valid hour found');
+                        }
                     }
                 },
 
@@ -1051,6 +1090,20 @@
                     var newDate = date.clone().subtract(1, 'h');
                     if (isValid(newDate, 'h')) {
                         setValue(newDate);
+                    } else {
+                        let found = false;
+                        for (let h = 1; h <= 23; h++) {
+                            newDate = date.clone().subtract(h, 'h');
+                            if (isValid(newDate, 'h')) {
+                                setValue(newDate);
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found) {
+                            console.error('No valid hour found');
+                        }
                     }
                 },
 
